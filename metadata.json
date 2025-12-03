@@ -1,0 +1,5 @@
+{
+  "name": "流水线编辑器Preserved",
+  "description": "A visual CI/CD pipeline editor with stage management, task configuration, and advanced settings.",
+  "requestFramePermissions": []
+}
