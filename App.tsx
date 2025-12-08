@@ -8,6 +8,7 @@ import { VariablesView } from './components/VariablesView';
 import { BasicInfoView } from './components/BasicInfoView';
 import { AdvancedSettingsView } from './components/AdvancedSettingsView';
 import { LogViewer } from './components/LogViewer';
+import { AddSourceModal } from './components/AddSourceModal';
 
 const App: React.FC = () => {
   const [pipeline, setPipeline] = useState<PipelineData>(INITIAL_PIPELINE);
@@ -16,7 +17,14 @@ const App: React.FC = () => {
   // Drawer State
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [editingStageId, setEditingStageId] = useState<string | null>(null);
   const [drawerTitle, setDrawerTitle] = useState('');
+
+  // Add Source Modal State
+  const [isAddSourceModalOpen, setIsAddSourceModalOpen] = useState(false);
+  const [targetStageIdForSource, setTargetStageIdForSource] = useState<string | null>(null);
+  const [targetGroupIndexForSource, setTargetGroupIndexForSource] = useState<number | undefined>(undefined);
+  const [targetInsertIndexForSource, setTargetInsertIndexForSource] = useState<number | undefined>(undefined);
 
   // Drag and Drop State
   const [draggedStageIndex, setDraggedStageIndex] = useState<number | null>(null);
@@ -62,31 +70,72 @@ const App: React.FC = () => {
   };
 
   // Handlers
-  const handleAddJob = (stageId: string, groupIndex?: number) => {
+  const handleAddJob = (stageId: string, groupIndex?: number, insertIndex?: number) => {
+    // Check if this is the first stage (Source Stage)
+    const isSourceStage = pipeline.stages[0].id === stageId;
+
+    if (isSourceStage) {
+        setTargetStageIdForSource(stageId);
+        setTargetGroupIndexForSource(groupIndex);
+        setTargetInsertIndexForSource(insertIndex);
+        setIsAddSourceModalOpen(true);
+        return;
+    }
+
+    // Default behavior for other stages
     const newJob: Job = {
       id: `j-${Date.now()}`,
       name: '新任务',
       type: 'script',
       config: {}
     };
-    
-    setPipeline(prev => ({
-      ...prev,
-      stages: prev.stages.map(s => {
-        if (s.id === stageId) {
-          if (groupIndex !== undefined && groupIndex >= 0) {
-            // Add to existing group (Serial)
-            const newGroups = [...s.groups];
-            newGroups[groupIndex] = [...newGroups[groupIndex], newJob];
-            return { ...s, groups: newGroups };
-          } else {
-            // Add as a new parallel group
-            return { ...s, groups: [...s.groups, [newJob]] };
+    addJobToPipeline(stageId, newJob, groupIndex, insertIndex);
+  };
+
+  const addJobToPipeline = (stageId: string, newJob: Job, groupIndex?: number, insertIndex?: number) => {
+      setPipeline(prev => ({
+        ...prev,
+        stages: prev.stages.map(s => {
+          if (s.id === stageId) {
+            if (groupIndex !== undefined && groupIndex >= 0) {
+              // Add to existing group (Serial)
+              const newGroups = [...s.groups];
+              const targetGroup = [...newGroups[groupIndex]];
+              
+              if (insertIndex !== undefined) {
+                  // Insert at specific index
+                  targetGroup.splice(insertIndex, 0, newJob);
+              } else {
+                  // Append to end
+                  targetGroup.push(newJob);
+              }
+              
+              newGroups[groupIndex] = targetGroup;
+              return { ...s, groups: newGroups };
+            } else {
+              // Add as a new parallel group
+              return { ...s, groups: [...s.groups, [newJob]] };
+            }
           }
-        }
-        return s;
-      })
-    }));
+          return s;
+        })
+      }));
+  };
+
+  const handleConfirmAddSource = (sourceConfig: any) => {
+      if (targetStageIdForSource) {
+          const newJob: Job = {
+              id: `j-src-${Date.now()}`,
+              name: sourceConfig.name || 'Git Source',
+              type: 'git-source',
+              config: sourceConfig.config || {}
+          };
+          addJobToPipeline(targetStageIdForSource, newJob, targetGroupIndexForSource, targetInsertIndexForSource);
+      }
+      setIsAddSourceModalOpen(false);
+      setTargetStageIdForSource(null);
+      setTargetGroupIndexForSource(undefined);
+      setTargetInsertIndexForSource(undefined);
   };
 
   const handleDeleteJob = (stageId: string, jobId: string) => {
@@ -104,8 +153,18 @@ const App: React.FC = () => {
       }));
   };
 
-  const handleEditJob = (job: Job) => {
+  const handleDeleteJobFromDrawer = () => {
+      if (editingJob && editingStageId) {
+          handleDeleteJob(editingStageId, editingJob.id);
+          setIsDrawerOpen(false);
+          setEditingJob(null);
+          setEditingStageId(null);
+      }
+  };
+
+  const handleEditJob = (job: Job, stageId: string) => {
     setEditingJob(job);
+    setEditingStageId(stageId);
     setDrawerTitle(`编辑任务: ${job.name}`);
     setIsDrawerOpen(true);
   };
@@ -121,6 +180,7 @@ const App: React.FC = () => {
     }));
     setIsDrawerOpen(false);
     setEditingJob(null);
+    setEditingStageId(null);
   };
 
   const handleAddStage = (index: number) => {
@@ -250,11 +310,11 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-auto relative">
+      <main className="flex-1 overflow-auto relative bg-gray-50">
           
           {activeTab === 'workflow' && (
-              <div className="h-full w-full overflow-x-auto overflow-y-auto p-8">
-                  <div className="flex min-w-max items-stretch pt-4 pb-8">
+              <div className="h-full w-full overflow-x-auto overflow-y-auto">
+                  <div className="flex min-w-max items-stretch px-8 min-h-full">
                       {pipeline.stages.map((stage, index) => (
                           <React.Fragment key={stage.id}>
                               <StageColumn 
@@ -290,10 +350,10 @@ const App: React.FC = () => {
 
                       {/* Add End Stage Button - Only show when not running */}
                       {!isRunning && (
-                          <div className="h-full flex items-start pt-4 pl-4">
+                          <div className="h-full flex items-start pt-14 pl-4">
                                 <button 
                                     onClick={() => handleAddStage(pipeline.stages.length)}
-                                    className="flex flex-col items-center justify-center w-12 h-full space-y-2 group opacity-50 hover:opacity-100"
+                                    className="flex flex-col items-center justify-center w-12 h-20 space-y-2 group opacity-50 hover:opacity-100"
                                 >
                                     <div className="w-10 h-10 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 group-hover:border-blue-400 group-hover:text-blue-500 transition-colors">
                                         <Icons.Plus className="w-6 h-6" />
@@ -336,12 +396,20 @@ const App: React.FC = () => {
           />
       )}
 
+      {/* Add Source Modal */}
+      <AddSourceModal 
+          isOpen={isAddSourceModalOpen}
+          onClose={() => setIsAddSourceModalOpen(false)}
+          onAdd={handleConfirmAddSource}
+      />
+
       {/* Configuration Drawer */}
       <ConfigDrawer
         isOpen={isDrawerOpen}
         title={drawerTitle}
         onClose={() => setIsDrawerOpen(false)}
         onSave={activeTab === 'workflow' ? saveJobConfig : undefined}
+        onDelete={editingJob && editingJob.type !== 'stage' ? handleDeleteJobFromDrawer : undefined}
       >
           {editingJob && editingJob.type !== 'stage' && (
               <JobConfigForm 

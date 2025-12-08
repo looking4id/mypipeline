@@ -31,7 +31,15 @@ import {
   ScrollText,
   Loader2,
   CircleDashed,
-  Workflow
+  Workflow,
+  Github,
+  Gitlab,
+  Code2,
+  Cloud,
+  Package,
+  Server,
+  Fingerprint,
+  Link
 } from 'lucide-react';
 
 export const Icons = {
@@ -65,5 +73,13 @@ export const Icons = {
   ScrollText,
   Loader2,
   CircleDashed,
-  Workflow
+  Workflow,
+  Github,
+  Gitlab,
+  Code2,
+  Cloud,
+  Package,
+  Server,
+  Fingerprint,
+  Link
 };

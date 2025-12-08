@@ -10,6 +10,7 @@ interface ConfigDrawerProps {
   onClose: () => void;
   children: React.ReactNode;
   onSave?: () => void;
+  onDelete?: () => void;
 }
 
 export const ConfigDrawer: React.FC<ConfigDrawerProps> = ({
@@ -17,7 +18,8 @@ export const ConfigDrawer: React.FC<ConfigDrawerProps> = ({
   title,
   onClose,
   children,
-  onSave
+  onSave,
+  onDelete
 }) => {
   if (!isOpen) return null;
 
@@ -48,6 +50,19 @@ export const ConfigDrawer: React.FC<ConfigDrawerProps> = ({
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
           {children}
         </div>
+
+        {/* Footer for Delete Action */}
+        {onDelete && (
+             <div className="px-6 py-4 border-t border-gray-100 bg-white">
+                 <button 
+                    onClick={onDelete}
+                    className="w-full flex items-center justify-center space-x-2 py-2 text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded transition-colors font-medium"
+                 >
+                     <Icons.Trash2 className="w-4 h-4" />
+                     <span>删除任务</span>
+                 </button>
+             </div>
+        )}
       </div>
     </div>
   );
