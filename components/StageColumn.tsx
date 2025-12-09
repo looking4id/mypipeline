@@ -97,7 +97,7 @@ export const StageColumn: React.FC<StageColumnProps> = ({
       onDragEnter={() => onDragEnter(index)}
       onDragOver={(e) => e.preventDefault()}
       onDragEnd={handleDragEnd}
-      className="relative flex flex-col min-w-[260px] w-max mx-6 flex-shrink-0 transition-all duration-200 group/stage py-10"
+      className="relative flex flex-col min-w-[260px] w-max mx-4 flex-shrink-0 transition-all duration-200 group/stage py-6"
     >
       {/* 
           VERTICAL SEPARATOR LINE 
