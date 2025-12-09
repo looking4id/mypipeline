@@ -363,16 +363,20 @@ const App: React.FC = () => {
 
                       {/* Add End Stage Button - Only show when not running */}
                       {!isRunning && (
-                          <div className="h-full flex items-start pt-14 pl-4">
-                                <button 
-                                    onClick={() => handleAddStage(pipeline.stages.length)}
-                                    className="flex flex-col items-center justify-center w-12 h-20 space-y-2 group opacity-50 hover:opacity-100"
-                                >
-                                    <div className="w-10 h-10 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 group-hover:border-blue-400 group-hover:text-blue-500 transition-colors">
-                                        <Icons.Plus className="w-6 h-6" />
-                                    </div>
-                                    <span className="text-xs text-gray-400 group-hover:text-blue-500 writing-vertical">添加阶段</span>
-                                </button>
+                          <div className="relative h-full w-24 flex-shrink-0 mx-2">
+                                {/* Vertical Line from Top to Bottom */}
+                                <div className="absolute top-0 bottom-0 left-1/2 w-px bg-gray-200 -translate-x-1/2"></div>
+                                
+                                {/* Button - Aligned vertically with StageColumn insert buttons (top-12) */}
+                                <div className="absolute top-12 left-0 right-0 flex justify-center z-10">
+                                    <button 
+                                        onClick={() => handleAddStage(pipeline.stages.length)}
+                                        className="w-8 h-8 rounded-full bg-white border border-gray-200 text-gray-400 flex items-center justify-center hover:bg-blue-50 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm transform hover:scale-110"
+                                        title="在此处插入新阶段"
+                                    >
+                                        <Icons.Plus className="w-4 h-4" />
+                                    </button>
+                                </div>
                           </div>
                       )}
                   </div>
