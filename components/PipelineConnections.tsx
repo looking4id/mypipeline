@@ -55,29 +55,47 @@ export const PipelineConnections: React.FC<PipelineConnectionsProps> = ({ pipeli
         };
       };
 
-      const RADIUS = 14; // Increased radius for smoother corners
+      const RADIUS = 14; 
 
-      // 1. Horizontal Step Path (Right -> Left) with midX
-      const generateHorizontalStepPath = (start: Point, end: Point, midX: number) => {
-        // Ensure midX has enough space for radius
-        const safeRadius = Math.min(RADIUS, Math.abs(midX - start.x) / 2, Math.abs(end.x - midX) / 2, Math.abs(end.y - start.y) / 2);
-        
-        // Straight line if aligned
-        if (Math.abs(start.y - end.y) < 2) {
-            return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
-        }
+      // 1. Join Path (Output -> Merge Vertical Line)
+      // Connects a point to a vertical line at mergeX, then goes to targetY (trunk)
+      const generateJoinPath = (start: Point, mergeX: number, targetY: number) => {
+          // If perfectly aligned (Top Task), straight line
+          if (Math.abs(start.y - targetY) < 1) {
+              return `M ${start.x} ${start.y} L ${mergeX} ${start.y}`;
+          }
 
-        const dirY = end.y > start.y ? 1 : -1;
-        
-        // Path: Start -> Horizontal -> Curve -> Vertical -> Curve -> Horizontal -> End
-        return `
-          M ${start.x} ${start.y}
-          L ${midX - safeRadius} ${start.y}
-          Q ${midX} ${start.y} ${midX} ${start.y + safeRadius * dirY}
-          L ${midX} ${end.y - safeRadius * dirY}
-          Q ${midX} ${end.y} ${midX + safeRadius} ${end.y}
-          L ${end.x} ${end.y}
-        `;
+          const dirY = targetY > start.y ? 1 : -1;
+          const safeRadius = Math.min(RADIUS, Math.abs(mergeX - start.x) / 2, Math.abs(targetY - start.y) / 2);
+
+          // Path: Start -> Horizontal to MergeX-r -> Curve -> Vertical to TargetY
+          // Note: We stop at TargetY (T-junction), we don't curve again.
+          return `
+            M ${start.x} ${start.y}
+            L ${mergeX - safeRadius} ${start.y}
+            Q ${mergeX} ${start.y} ${mergeX} ${start.y + safeRadius * dirY}
+            L ${mergeX} ${targetY}
+          `;
+      };
+
+      // 2. Split Path (Fork Vertical Line -> Input)
+      // Starts from (forkX, sourceY), goes vertical to input.y, then horizontal to input
+      const generateSplitPath = (forkX: number, sourceY: number, end: Point) => {
+          // If perfectly aligned (Top Task), straight line
+          if (Math.abs(sourceY - end.y) < 1) {
+              return `M ${forkX} ${sourceY} L ${end.x} ${end.y}`;
+          }
+
+          const dirY = end.y > sourceY ? 1 : -1;
+          const safeRadius = Math.min(RADIUS, Math.abs(end.x - forkX) / 2, Math.abs(end.y - sourceY) / 2);
+
+          // Path: Start(ForkX, SourceY) -> Vertical to EndY-r -> Curve -> Horizontal to End
+          return `
+            M ${forkX} ${sourceY}
+            L ${forkX} ${end.y - safeRadius * dirY}
+            Q ${forkX} ${end.y} ${forkX + safeRadius} ${end.y}
+            L ${end.x} ${end.y}
+          `;
       };
 
       // --- Logic Loop ---
@@ -105,7 +123,7 @@ export const PipelineConnections: React.FC<PipelineConnectionsProps> = ({ pipeli
               }
           });
 
-          // B. Inter-Stage Connections (Fork & Join)
+          // B. Inter-Stage Connections (Trunk / Bus Style)
           // Skip connecting the Source stage (index 0) to the next stage
           if (stageIndex > 0 && stageIndex < pipeline.stages.length - 1) {
              const nextStage = pipeline.stages[stageIndex + 1];
@@ -135,39 +153,35 @@ export const PipelineConnections: React.FC<PipelineConnectionsProps> = ({ pipeli
                  const minInputX = Math.min(...inputNodes.map(p => p.x));
                  const maxOutputX = Math.max(...outputNodes.map(p => p.x));
                  
-                 // Calculate Centers
-                 const avgOutputY = outputNodes.reduce((sum, p) => sum + p.y, 0) / outputNodes.length;
-                 const avgInputY = inputNodes.reduce((sum, p) => sum + p.y, 0) / inputNodes.length;
+                 // Main Trunk Y is aligned with the top-most tasks (Index 0)
+                 // Assuming standard layout order, index 0 is top
+                 const trunkY = outputNodes[0].y;
+                 // Note: We assume inputNodes[0].y is roughly aligned with outputNodes[0].y for a straight bridge
+                 // If not (e.g. stage misalignment), we might need a step in the bridge, 
+                 // but for this design we assume the "Main Trunk" level is determined by the Output Stage top task.
 
                  const gap = minInputX - maxOutputX;
-                 
-                 // OPTIMIZATION: Use centered Fork/Merge points with fixed bridge width
-                 // This maximizes the available horizontal space for the Fan-In/Fan-Out curves,
-                 // ensuring the radius isn't clamped too aggressively.
-                 
-                 const bridgeWidth = 32; // Fixed short bridge
                  const centerX = maxOutputX + gap / 2;
                  
-                 // Define Merge and Fork Points centered in the gap
-                 const mergePoint = { x: centerX - bridgeWidth / 2, y: avgOutputY };
-                 const forkPoint = { x: centerX + bridgeWidth / 2, y: avgInputY };
+                 const bridgeWidth = 40; 
+                 
+                 // Define Merge (Vertical Line X) and Fork (Vertical Line X)
+                 const mergeX = centerX - bridgeWidth / 2;
+                 const forkX = centerX + bridgeWidth / 2;
 
-                 // 1. Fan-In (Join): Output Nodes -> Merge Point
+                 // 1. Fan-In: Connect all outputs to the Merge Line, then up/down to TrunkY
                  outputNodes.forEach(pOut => {
-                     // MidX is exactly halfway between output and merge point
-                     const midX = (pOut.x + mergePoint.x) / 2;
-                     newPaths.push(generateHorizontalStepPath(pOut, mergePoint, midX));
+                     newPaths.push(generateJoinPath(pOut, mergeX, trunkY));
                  });
 
-                 // 2. Bridge: Merge Point -> Fork Point
-                 const bridgeMidX = (mergePoint.x + forkPoint.x) / 2;
-                 newPaths.push(generateHorizontalStepPath(mergePoint, forkPoint, bridgeMidX));
+                 // 2. Bridge: Connect Merge Point to Fork Point along TrunkY
+                 // This is the "Main Trunk" horizontal segment
+                 newPaths.push(`M ${mergeX} ${trunkY} L ${forkX} ${trunkY}`);
 
-                 // 3. Fan-Out (Fork): Fork Point -> Input Nodes
+                 // 3. Fan-Out: Connect Trunk (at ForkX) to all inputs
+                 // We distribute from (ForkX, TrunkY)
                  inputNodes.forEach(pIn => {
-                     // MidX is exactly halfway between fork point and input
-                     const midX = (forkPoint.x + pIn.x) / 2;
-                     newPaths.push(generateHorizontalStepPath(forkPoint, pIn, midX));
+                     newPaths.push(generateSplitPath(forkX, trunkY, pIn));
                  });
              }
           }
@@ -178,14 +192,10 @@ export const PipelineConnections: React.FC<PipelineConnectionsProps> = ({ pipeli
 
     // Calculate initially and on resize
     const observer = new ResizeObserver(() => {
-        // Use animation frame to avoid resize loop errors and ensure DOM is settled
         requestAnimationFrame(calculatePaths);
     });
     
-    // Observe the document body for general layout changes
     observer.observe(document.body);
-    
-    // Also recalculate periodically to handle React render timing (simple fallback)
     const interval = setInterval(calculatePaths, 500);
 
     return () => {
