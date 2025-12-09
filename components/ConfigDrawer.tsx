@@ -360,6 +360,21 @@ export const JobConfigForm: React.FC<JobConfigFormProps> = ({ job, onChange }) =
                             )}
                         </div>
                     </div>
+
+                    <div className="bg-gray-50 p-3 rounded border border-gray-200 mt-2">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                className="rounded text-blue-600 focus:ring-blue-500"
+                                checked={job.config.shallowClone === true}
+                                onChange={(e) => onChange({...job, config: {...job.config, shallowClone: e.target.checked}})}
+                            />
+                            <span className="text-sm text-gray-700 font-medium">开启浅克隆 (Shallow Clone)</span>
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1 pl-6">
+                            仅拉取最近一次提交，可显著减少拉取时间，适用于CI场景。
+                        </p>
+                    </div>
                 </div>
             )}
 

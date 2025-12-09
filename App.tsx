@@ -9,6 +9,7 @@ import { BasicInfoView } from './components/BasicInfoView';
 import { AdvancedSettingsView } from './components/AdvancedSettingsView';
 import { LogViewer } from './components/LogViewer';
 import { AddSourceModal } from './components/AddSourceModal';
+import { PipelineConnections } from './components/PipelineConnections';
 
 const App: React.FC = () => {
   const [pipeline, setPipeline] = useState<PipelineData>(INITIAL_PIPELINE);
@@ -313,8 +314,11 @@ const App: React.FC = () => {
       <main className={`flex-1 relative bg-gray-50 ${activeTab === 'workflow' ? 'overflow-hidden flex flex-col' : 'overflow-auto'}`}>
           
           {activeTab === 'workflow' && (
-              <div className="flex-1 w-full h-full overflow-x-auto overflow-y-auto">
-                  <div className="flex min-w-max items-stretch px-4 min-h-full">
+              <div className="flex-1 w-full h-full overflow-x-auto overflow-y-auto relative">
+                  <div className="flex min-w-max items-stretch px-4 min-h-full relative z-10">
+                      {/* SVG Connector Overlay - Moved inside content wrapper to handle scroll width */}
+                      <PipelineConnections pipeline={pipeline} />
+
                       {pipeline.stages.map((stage, index) => (
                           <React.Fragment key={stage.id}>
                               <StageColumn 
