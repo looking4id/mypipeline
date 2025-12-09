@@ -97,7 +97,7 @@ export const StageColumn: React.FC<StageColumnProps> = ({
       onDragEnter={() => onDragEnter(index)}
       onDragOver={(e) => e.preventDefault()}
       onDragEnd={handleDragEnd}
-      className="relative flex flex-col min-w-[260px] w-max mx-12 flex-shrink-0 transition-all duration-200 group/stage pb-6 z-10"
+      className="relative flex flex-col min-w-[220px] w-max mx-12 flex-shrink-0 transition-all duration-200 group/stage pb-6 z-10"
     >
       {/* 
           REMOVED: Vertical Separator Line 
@@ -166,14 +166,14 @@ export const StageColumn: React.FC<StageColumnProps> = ({
               
               {/* Drag Handle Area - Includes Icon and Title */}
               <div className="flex-1 flex items-start space-x-2 drag-handle cursor-grab active:cursor-grabbing hover:bg-gray-100/50 rounded-lg p-1 -ml-1 transition-colors select-none">
-                  <div className="mt-1 text-gray-300 group-hover/stage:text-gray-400">
-                     <Icons.GripVertical className="w-5 h-5" />
+                  <div className="mt-0.5 text-gray-300 group-hover/stage:text-gray-400">
+                     <Icons.GripVertical className="w-4 h-4" />
                   </div>
                   
                   <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
                         <h3 
-                            className="font-bold text-gray-800 text-base truncate cursor-pointer hover:text-blue-600 transition-colors"
+                            className="font-bold text-gray-800 text-sm truncate cursor-pointer hover:text-blue-600 transition-colors"
                             onClick={(e) => {
                                 if (!isDragging) {
                                     onEditStage(stage);
@@ -184,13 +184,13 @@ export const StageColumn: React.FC<StageColumnProps> = ({
                             {stage.name}
                         </h3>
                         
-                        {status === 'running' && <Icons.Loader2 className="w-4 h-4 text-blue-500 animate-spin" />}
-                        {status === 'completed' && <Icons.CheckCircle className="w-4 h-4 text-green-500" />}
-                        {status === 'failed' && <Icons.AlertCircle className="w-4 h-4 text-red-500" />}
-                        {status === 'waiting' && <Icons.Clock className="w-4 h-4 text-gray-400" />}
+                        {status === 'running' && <Icons.Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin" />}
+                        {status === 'completed' && <Icons.CheckCircle className="w-3.5 h-3.5 text-green-500" />}
+                        {status === 'failed' && <Icons.AlertCircle className="w-3.5 h-3.5 text-red-500" />}
+                        {status === 'waiting' && <Icons.Clock className="w-3.5 h-3.5 text-gray-400" />}
                       </div>
                       
-                      <div className="flex items-center mt-1 space-x-2 text-xs">
+                      <div className="flex items-center mt-1 space-x-2 text-[10px]">
                           {status === 'running' ? (
                              <span className="font-semibold text-blue-600 animate-pulse">执行中...</span>
                           ) : status === 'failed' ? (
@@ -213,11 +213,11 @@ export const StageColumn: React.FC<StageColumnProps> = ({
               {/* Actions - Separate from drag handle */}
               <div className={`flex items-center space-x-1 ml-2 transition-opacity duration-200 ${status === 'running' ? 'opacity-0' : 'opacity-0 group-hover/stage:opacity-100'}`}>
                 <button onClick={() => onEditStage(stage)} className="text-gray-400 hover:text-blue-600 p-1 rounded hover:bg-blue-50 transition-colors">
-                    <Icons.Edit3 className="w-3.5 h-3.5" />
+                    <Icons.Edit3 className="w-3 h-3" />
                 </button>
                 {!isFirst && (
                     <button onClick={() => onDeleteStage(stage.id)} className="text-gray-400 hover:text-red-500 p-1 rounded hover:bg-red-50 transition-colors">
-                        <Icons.Trash2 className="w-3.5 h-3.5" />
+                        <Icons.Trash2 className="w-3 h-3" />
                     </button>
                 )}
               </div>
@@ -235,9 +235,9 @@ export const StageColumn: React.FC<StageColumnProps> = ({
                         
                         {group.map((job, jobIndex) => (
                             <React.Fragment key={job.id}>
-                                {/* Invisible Spacer for SVG Line */}
+                                {/* Invisible Spacer for SVG Line - Reduced width */}
                                 {jobIndex > 0 && (
-                                    <div className="w-8 flex-shrink-0"></div>
+                                    <div className="w-6 flex-shrink-0"></div>
                                 )}
 
                                 <div className="relative group/job">
@@ -245,42 +245,42 @@ export const StageColumn: React.FC<StageColumnProps> = ({
                                     {status === 'idle' && !isDragging && !(isFirst && groupIndex === 0 && jobIndex === 0) && (
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); onAddJob(stage.id, groupIndex, jobIndex); }}
-                                            className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-white border border-blue-200 text-blue-500 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover/job:opacity-100 transition-all hover:scale-110 hover:bg-blue-50 z-30"
+                                            className="absolute -left-3 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border border-blue-200 text-blue-500 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover/job:opacity-100 transition-all hover:scale-110 hover:bg-blue-50 z-30"
                                             title="在此之前添加串行任务"
                                         >
-                                            <Icons.Plus className="w-3 h-3" />
+                                            <Icons.Plus className="w-2.5 h-2.5" />
                                         </button>
                                     )}
 
-                                    {/* JOB CARD with ID for SVG Lines */}
+                                    {/* JOB CARD with ID for SVG Lines - COMPACT SIZE */}
                                     <div 
                                         id={`job-node-${job.id}`}
                                         onClick={() => !isDragging && onEditJob(job, stage.id)}
-                                        className={`relative bg-white border rounded-lg p-3 w-[240px] shadow-sm cursor-pointer transition-all flex-shrink-0 z-10
+                                        className={`relative bg-white border rounded-lg p-2 w-[180px] shadow-sm cursor-pointer transition-all flex-shrink-0 z-10
                                             ${status === 'running' ? 'border-blue-200 shadow-blue-100' : 
                                               status === 'failed' ? 'border-red-200' :
                                               status === 'completed' ? 'border-green-200' :
                                               'border-gray-200 hover:shadow-md hover:border-blue-500'}
                                         `}
                                     >
-                                        <div className="flex items-start space-x-3">
-                                            <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors duration-300
+                                        <div className="flex items-start space-x-2">
+                                            <div className={`flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center transition-colors duration-300
                                                 ${status === 'running' ? 'bg-blue-100 text-blue-600' : 
                                                   status === 'completed' ? 'bg-green-100 text-green-600' :
                                                   status === 'failed' ? 'bg-red-100 text-red-600' :
                                                   status === 'waiting' ? 'bg-gray-100 text-gray-400' :
                                                   isFirst ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}
                                             `}>
-                                                {status === 'running' ? <Icons.Loader2 className="w-5 h-5 animate-spin" /> : 
-                                                 status === 'completed' ? <Icons.CheckCircle className="w-5 h-5" /> :
-                                                 status === 'failed' ? <Icons.AlertCircle className="w-5 h-5" /> :
-                                                 status === 'waiting' ? <Icons.Clock className="w-5 h-5" /> :
-                                                 isFirst ? <Icons.GitBranch className="w-5 h-5" /> : <Icons.Box className="w-5 h-5" />}
+                                                {status === 'running' ? <Icons.Loader2 className="w-3.5 h-3.5 animate-spin" /> : 
+                                                 status === 'completed' ? <Icons.CheckCircle className="w-3.5 h-3.5" /> :
+                                                 status === 'failed' ? <Icons.AlertCircle className="w-3.5 h-3.5" /> :
+                                                 status === 'waiting' ? <Icons.Clock className="w-3.5 h-3.5" /> :
+                                                 isFirst ? <Icons.GitBranch className="w-3.5 h-3.5" /> : <Icons.Box className="w-3.5 h-3.5" />}
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <h4 className={`text-sm font-medium truncate ${status === 'waiting' ? 'text-gray-400' : 'text-gray-900'}`} title={job.name}>{job.name}</h4>
-                                                <div className="flex items-center justify-between mt-1 min-w-0">
-                                                    <span className="text-xs text-gray-500 truncate flex-1" title={job.type}>{job.type}</span>
+                                                <h4 className={`text-xs font-semibold truncate ${status === 'waiting' ? 'text-gray-400' : 'text-gray-900'}`} title={job.name}>{job.name}</h4>
+                                                <div className="flex items-center justify-between mt-0.5 min-w-0">
+                                                    <span className="text-[10px] text-gray-500 truncate flex-1" title={job.type}>{job.type}</span>
                                                     
                                                     {(status === 'running' || status === 'completed' || status === 'failed') && (
                                                         <button 
@@ -288,10 +288,10 @@ export const StageColumn: React.FC<StageColumnProps> = ({
                                                                 e.stopPropagation();
                                                                 onViewLogs(job);
                                                             }}
-                                                            className="ml-2 flex items-center text-[10px] text-gray-500 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 px-2 py-0.5 rounded border border-gray-100 transition-colors"
+                                                            className="ml-1 flex items-center text-[9px] text-gray-500 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 px-1.5 py-0.5 rounded border border-gray-100 transition-colors"
                                                             title="查看详细日志"
                                                         >
-                                                            <Icons.ScrollText className="w-3 h-3 mr-1" />
+                                                            <Icons.ScrollText className="w-2.5 h-2.5 mr-0.5" />
                                                             日志
                                                         </button>
                                                     )}
@@ -304,10 +304,10 @@ export const StageColumn: React.FC<StageColumnProps> = ({
                                     {status === 'idle' && !isDragging && (
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); onAddJob(stage.id, groupIndex, jobIndex + 1); }}
-                                            className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-white border border-blue-200 text-blue-500 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover/job:opacity-100 transition-all hover:scale-110 hover:bg-blue-50 z-30"
+                                            className="absolute -right-3 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border border-blue-200 text-blue-500 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover/job:opacity-100 transition-all hover:scale-110 hover:bg-blue-50 z-30"
                                             title="在此之后添加串行任务"
                                         >
-                                            <Icons.Plus className="w-3 h-3" />
+                                            <Icons.Plus className="w-2.5 h-2.5" />
                                         </button>
                                     )}
                                 </div>
@@ -321,10 +321,10 @@ export const StageColumn: React.FC<StageColumnProps> = ({
             {status === 'idle' && !isDragging && (
                 <button 
                     onClick={() => onAddJob(stage.id)}
-                    className="mt-auto flex items-center justify-center w-[240px] h-10 border-2 border-dashed border-gray-200 rounded-lg text-gray-400 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-all group-hover/stage:border-gray-300 self-start ml-1"
+                    className={`mt-auto flex items-center justify-center w-[180px] h-8 border-[0.5px] border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-all self-start ${isParallel && hasMultipleGroups ? 'ml-4' : ''}`}
                 >
-                    <Icons.Plus className="w-4 h-4 mr-2" />
-                    <span className="text-sm font-medium">添加并行任务</span>
+                    <Icons.Plus className="w-3.5 h-3.5 mr-2" />
+                    <span className="text-xs font-medium">{isFirst ? '流水线源' : '添加并行任务'}</span>
                 </button>
             )}
           </div>

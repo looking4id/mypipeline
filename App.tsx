@@ -185,10 +185,19 @@ const App: React.FC = () => {
   };
 
   const handleAddStage = (index: number) => {
+      const newJob: Job = {
+          id: `j-${Date.now()}`,
+          name: '新任务',
+          type: 'script',
+          config: {
+              script: 'echo "Hello World"'
+          }
+      };
+
       const newStage: Stage = {
           id: `s-${Date.now()}`,
           name: '新阶段',
-          groups: [],
+          groups: [[newJob]], 
           isParallel: true
       };
       const newStages = [...pipeline.stages];
@@ -230,7 +239,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col font-sans text-slate-800 overflow-hidden">
+    <div className="h-screen bg-[#fcfcfc] flex flex-col font-sans text-slate-800 overflow-hidden">
       {/* Top Navigation Bar */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm flex-shrink-0">
         {/* Row 1: Breadcrumbs & Actions */}
@@ -311,7 +320,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className={`flex-1 relative bg-gray-50 ${activeTab === 'workflow' ? 'overflow-hidden flex flex-col' : 'overflow-auto'}`}>
+      <main className={`flex-1 relative bg-[#fcfcfc] ${activeTab === 'workflow' ? 'overflow-hidden flex flex-col' : 'overflow-auto'}`}>
           
           {activeTab === 'workflow' && (
               <div className="flex-1 w-full h-full overflow-x-auto overflow-y-auto relative">
